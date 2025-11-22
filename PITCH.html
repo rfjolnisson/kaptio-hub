@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaptio Content Hub Ecosystem - Architecture & Implementation Plan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'kaptio-primary-800': '#032E36',
+                        'kaptio-primary-600': '#034955',
+                        'kaptio-primary-400': '#056F82',
+                        'kaptio-primary-300': '#69A9B4',
+                        'kaptio-primary-200': '#B4D4DA',
+                        'kaptio-primary-100': '#E6F1F2',
+                        'kaptio-primary-50': '#EFF5F5',
+                        'kaptio-orange': '#F18525',
+                        'kaptio-yellow-400': '#FFBC42',
+                        'kaptio-yellow-300': '#FFD78E',
+                        'kaptio-secondary-400': '#DE37A4',
+                        'kaptio-background': '#F9FAF8',
+                        'kaptio-black': '#212121',
+                        'kaptio-grey-100': '#EBEBEB',
+                        'kaptio-grey-200': '#C3C3C3',
+                        'kaptio-grey-300': '#878787',
+                        'kaptio-white': '#FFFFFF',
+                    },
+                    fontFamily: {
+                        'lexend': ['Lexend', 'sans-serif'],
+                        sans: ['Lexend', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'kaptio': '0 100px 80px rgba(0,0,0,0.07), 0 41.778px 33.422px rgba(0,0,0,0.05), 0 22.336px 17.869px rgba(0,0,0,0.04), 0 12.522px 10.017px rgba(0,0,0,0.04), 0 6.65px 5.32px rgba(0,0,0,0.03), 0 2.767px 2.214px rgba(0,0,0,0.02)',
+                        'button': '0 1px 2px rgba(16,24,40,0.05)',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Lexend', sans-serif;
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #F9FAF8;
+            color: #212121;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            color: #032E36;
+        }
+        * {
+            transition-property: color, background-color, border-color;
+            transition-duration: 200ms;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #056F82 0%, #032E36 100%);
+        }
+        @media print {
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+            body {
+                background-color: white !important;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-kaptio-background">
+
+    <!-- Hero Section -->
+    <div class="hero-gradient min-h-screen flex items-center justify-center relative overflow-hidden">
+        <!-- Background decoration -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-20 left-20 w-64 h-64 bg-kaptio-yellow-400 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 right-20 w-96 h-96 bg-kaptio-secondary-400 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div class="relative z-10 text-center px-6 max-w-5xl">
+            <!-- Kaptio Logo -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 91 29" class="mx-auto mb-12" style="height: 48px; width: auto;">
+                <path d="M64.8,22.2c-1.2.4-2.6.6-3.9.6-3.4,0-5.7-2.5-5.7-6.2v-4.1h-2.8v-4h2.8v-3.5l4.8-1.2v4.7h4.9v4h-4.9v4c0,1.4.8,2.1,2.2,2.1.9,0,1.8-.2,2.6-.4v4.1Z" fill="white"/>
+                <path d="M72.5,22.4h-4.8v-13.9h4.8v13.9Z" fill="white"/>
+                <path d="M82.8,8.2c-4.5,0-7.7,3.1-7.7,7.2s3.2,7.4,7.7,7.4,7.7-3.1,7.7-7.4-3.2-7.2-7.7-7.2ZM82.8,18.8c-1.9,0-3.4-1.5-3.4-3.3s1.5-3.3,3.4-3.3,3.4,1.5,3.4,3.3-1.5,3.3-3.4,3.3Z" fill="white"/>
+                <path d="M27.5,22.4h4.8v-13.9h-4.8v.8c-1.2-.7-2.5-1.1-3.9-1.1-3.8,0-7.1,3.1-7.1,7.2s3.2,7.2,7.1,7.2c1.4,0,2.7-.3,3.9-1.1v.8ZM28.3,15.5c0,1.8-1.5,3.3-3.4,3.3s-3.4-1.5-3.4-3.3,1.5-3.3,3.4-3.3,3.4,1.5,3.4,3.3Z" fill="white"/>
+                <path d="M44.2,22.6c3.8,0,7.1-3.1,7.1-7.2s-3.2-7.2-7.1-7.2c-1.4,0-2.7.3-3.9,1.1v-.7h-4.8v20.3h4.8v-7.2c1.2.7,2.5,1.1,3.9,1.1ZM46.2,15.5c0,1.8-1.5,3.3-3.4,3.3s-3.4-1.5-3.4-3.3,1.5-3.3,3.4-3.3,3.4,1.5,3.4,3.3Z" fill="white"/>
+                <path d="M10.1,22.3l-4.9-6.1v6.1H.4V2h4.7v12.2l4.8-5.8h6.1l-5.7,6.7,5.9,7.3h-6.2Z" fill="white"/>
+                <ellipse cx="70.3" cy="3.6" rx="3.4" ry="3.4" fill="#DE37A4"/>
+            </svg>
+
+            <h1 class="text-6xl font-bold text-white mb-6">Content Hub Ecosystem</h1>
+            <div class="w-32 h-2 bg-kaptio-yellow-400 mx-auto mb-8"></div>
+            <p class="text-2xl text-kaptio-primary-200 font-light mb-12 max-w-3xl mx-auto">
+                Unified Git-Native Content Infrastructure for Product Marketing, Documentation, and Thought Leadership
+            </p>
+            
+            <div class="flex items-center justify-center space-x-4 text-kaptio-primary-100">
+                <span class="px-4 py-2 bg-white/10 rounded-lg backdrop-blur">4 Content Hubs</span>
+                <span class="px-4 py-2 bg-white/10 rounded-lg backdrop-blur">Shared Services</span>
+                <span class="px-4 py-2 bg-white/10 rounded-lg backdrop-blur">Git-Native</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- What the Business Needs -->
+    <div class="max-w-7xl mx-auto px-6 py-16">
+        <div class="bg-kaptio-white rounded-lg shadow-kaptio p-8 mb-12">
+            <h2 class="text-3xl font-bold text-kaptio-primary-800 mb-6">What the Business Needs Us to Build</h2>
+            <div class="w-24 h-1 bg-kaptio-yellow-400 mb-6"></div>
+            
+            <p class="text-lg text-kaptio-grey-300 mb-8">
+                A unified content ecosystem with four specialized hubs, each serving different audiences but sharing 
+                common infrastructure, design system, and workflows.
+            </p>
+
+            <!-- The Four Hubs -->
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Hub 1 -->
+                <div class="bg-kaptio-white rounded-lg shadow-kaptio p-6 border-t-4 border-kaptio-primary-400">
+                    <div class="flex items-start mb-4">
+                        <div class="w-12 h-12 bg-kaptio-primary-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6 text-kaptio-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-kaptio-primary-800 mb-2">1. Product Marketing Hub</h3>
+                            <p class="text-sm text-kaptio-grey-300 mb-3">Pre-sales collateral & showcases</p>
+                        </div>
+                    </div>
+                    <div class="bg-kaptio-background rounded p-3 mb-4">
+                        <p class="text-xs text-kaptio-grey-300 mb-2"><strong>For:</strong> Prospects, sales team, partners</p>
+                        <p class="text-xs text-kaptio-grey-300">
+                            <strong>Contains:</strong> Product showcases, architecture guides, one-pagers, case studies, comparison sheets, ROI calculators
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-kaptio-grey-100">
+                        <div class="text-xs font-medium text-kaptio-grey-300 mb-2">Live Examples:</div>
+                        <div class="space-y-1">
+                            <a href="https://kaptio-connect-showcase.netlify.app/" target="_blank" class="block text-xs text-kaptio-primary-400 hover:text-kaptio-primary-600 hover:underline">
+                                → Kaptio Connect Showcase
+                            </a>
+                            <a href="https://kaptio-transfer-architecture.netlify.app/" target="_blank" class="block text-xs text-kaptio-primary-400 hover:text-kaptio-primary-600 hover:underline">
+                                → Transfer Architecture Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hub 2 -->
+                <div class="bg-kaptio-white rounded-lg shadow-kaptio p-6 border-t-4 border-kaptio-orange">
+                    <div class="flex items-start mb-4">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6 text-kaptio-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-kaptio-primary-800 mb-2">2. User & Config Guides</h3>
+                            <p class="text-sm text-kaptio-grey-300 mb-3">End-user documentation</p>
+                        </div>
+                    </div>
+                    <div class="bg-kaptio-background rounded p-3 mb-4">
+                        <p class="text-xs text-kaptio-grey-300 mb-2"><strong>For:</strong> End users, system admins, support team</p>
+                        <p class="text-xs text-kaptio-grey-300">
+                            <strong>Contains:</strong> Getting started guides, how-to tutorials, config references, admin guides, video tutorials, release notes
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-kaptio-grey-100">
+                        <div class="text-xs font-medium text-kaptio-grey-300 mb-2">Live Example:</div>
+                        <a href="https://kaptio-booking-wizard-guide.netlify.app/" target="_blank" class="block text-xs text-kaptio-orange hover:text-orange-600 hover:underline">
+                            → Booking Wizard User & Config Guide
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Hub 3 -->
+                <div class="bg-kaptio-white rounded-lg shadow-kaptio p-6 border-t-4 border-kaptio-yellow-400">
+                    <div class="flex items-start mb-4">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6 text-kaptio-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-kaptio-primary-800 mb-2">3. Architecture & Extensions</h3>
+                            <p class="text-sm text-kaptio-grey-300 mb-3">Technical docs for extensibility</p>
+                        </div>
+                    </div>
+                    <div class="bg-kaptio-background rounded p-3 mb-4">
+                        <p class="text-xs text-kaptio-grey-300 mb-2"><strong>For:</strong> Technical partners, developers, solutions architects</p>
+                        <p class="text-xs text-kaptio-grey-300">
+                            <strong>Contains:</strong> System architecture docs, API documentation, extension guides, integration patterns, best practices
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Hub 4 -->
+                <div class="bg-kaptio-white rounded-lg shadow-kaptio p-6 border-t-4 border-kaptio-secondary-400">
+                    <div class="flex items-start mb-4">
+                        <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                            <svg class="w-6 h-6 text-kaptio-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-kaptio-primary-800 mb-2">4. Maturity Model Hub</h3>
+                            <p class="text-sm text-kaptio-grey-300 mb-3">Thought leadership & capability growth</p>
+                        </div>
+                    </div>
+                    <div class="bg-kaptio-background rounded p-3 mb-4">
+                        <p class="text-xs text-kaptio-grey-300 mb-2"><strong>For:</strong> Customer executives, Kaptio consultants, CSMs</p>
+                        <p class="text-xs text-kaptio-grey-300">
+                            <strong>Contains:</strong> Maturity assessments, level definitions (L2→L5), capability roadmaps, success stories, playbooks
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kai Reality Check -->
+            <div class="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-400 rounded-lg p-6">
+                <h3 class="font-bold text-kaptio-primary-800 mb-3">⚠️ Important: Kai AI Limitations</h3>
+                <p class="text-sm text-kaptio-grey-300 mb-3">
+                    <strong>Current Reality:</strong> Kai is an extremely powerful AI assistant with full access to Kaptio systems and customer data. 
+                    It currently has <strong>no guardrails</strong> and poses <strong>significant security and privacy risks</strong> for customers.
+                </p>
+                <p class="text-sm text-kaptio-grey-300 mb-3">
+                    <strong>Cannot Be Embedded:</strong> Kai will NOT be embedded in content hubs or made customer-facing until we've implemented 
+                    proper security controls, data isolation, and customer data protection mechanisms.
+                </p>
+                <p class="text-sm text-kaptio-grey-300">
+                    <strong>How We Use Kai:</strong> Internally only, for content generation. Kai helps our team create first drafts via Cursor/Claude API. 
+                    No customer or prospect ever interacts with Kai directly. Think of it as a <em>content creation assistant</em>, not a chat widget.
+                </p>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            <div class="bg-kaptio-white rounded-lg shadow-kaptio p-6 text-center">
+                <div class="text-4xl font-bold text-kaptio-primary-800 mb-2">4</div>
+                <div class="text-sm text-kaptio-grey-300 font-light">Content Hubs</div>
+            </div>
+            <div class="bg-kaptio-white rounded-lg shadow-kaptio p-6 text-center">
+                <div class="text-4xl font-bold text-kaptio-primary-800 mb-2">3</div>
+                <div class="text-sm text-kaptio-grey-300 font-light">Shared Services</div>
+            </div>
+            <div class="bg-kaptio-white rounded-lg shadow-kaptio p-6 text-center">
+                <div class="text-4xl font-bold text-kaptio-primary-800 mb-2">100%</div>
+                <div class="text-sm text-kaptio-grey-300 font-light">Git-Native</div>
+            </div>
+            <div class="bg-kaptio-white rounded-lg shadow-kaptio p-6 text-center">
+                <div class="text-4xl font-bold text-kaptio-primary-800 mb-2">AI</div>
+                <div class="text-sm text-kaptio-grey-300 font-light">Kai Assistant</div>
+            </div>
+        </div>
+
+        <!-- POC Strategy -->
+        <div class="bg-gradient-to-br from-kaptio-yellow-400 to-kaptio-orange rounded-lg shadow-kaptio p-8 mb-16">
+            <h2 class="text-3xl font-bold text-kaptio-primary-800 mb-6">POC Strategy: Simple Gallery First</h2>
+            <div class="w-24 h-1 bg-kaptio-primary-800 mb-8"></div>
+
+            <p class="text-lg text-kaptio-primary-800 font-medium mb-6">
+                Launch a simple, static gallery site <strong>immediately</strong> to support sales while we build the full system.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-kaptio p-6 border-l-4 border-kaptio-primary-400">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-kaptio-primary-400 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                            R
+                        </div>
+                        <h3 class="font-bold text-kaptio-primary-800">Ragnar: Build Gallery (This Week)</h3>
+                    </div>
+                    <p class="text-sm text-kaptio-grey-300 mb-4">
+                        Build simple, static HTML gallery site for pre-sales content. No CMS, no complexity—just beautiful, 
+                        branded pages we can add to quickly.
+                    </p>
+                    <ul class="space-y-2 text-xs text-kaptio-grey-300">
+                        <li>✓ Static HTML + Tailwind + Kaptio Design System</li>
+                        <li>✓ Gallery/index page listing all content</li>
+                        <li>✓ Migrate Connect Showcase & Transfer Guide</li>
+                        <li>✓ Add 3-5 more content pieces (Kai-assisted)</li>
+                        <li>✓ Deploy to Netlify → Live by Friday</li>
+                    </ul>
+                    <div class="mt-4 p-3 bg-kaptio-primary-50 rounded">
+                        <p class="text-xs text-kaptio-primary-800">
+                            <strong>Goal:</strong> Sales team empowered with beautiful content they can share with prospects IMMEDIATELY.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-kaptio p-6 border-l-4 border-kaptio-orange">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-kaptio-orange rounded-full flex items-center justify-center text-white font-bold mr-3">
+                            H
+                        </div>
+                        <h3 class="font-bold text-kaptio-primary-800">Halldor: Explore Long-Term Options</h3>
+                    </div>
+                    <p class="text-sm text-kaptio-grey-300 mb-4">
+                        While gallery supports sales, explore CloudCannon vs Custom Build. Create integration plan and present findings.
+                    </p>
+                    <ul class="space-y-2 text-xs text-kaptio-grey-300">
+                        <li>✓ Set up CloudCannon test environment</li>
+                        <li>✓ Design Marketing Hub templates for CloudCannon</li>
+                        <li>✓ Prototype approval tracking workaround</li>
+                        <li>✓ Document: How would CloudCannon integration work?</li>
+                        <li>✓ Document: What would custom build require?</li>
+                    </ul>
+                    <div class="mt-4 p-3 bg-orange-50 rounded">
+                        <p class="text-xs text-kaptio-primary-800">
+                            <strong>Goal:</strong> Clear recommendation with integration plan for long-term CMS solution.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-kaptio-primary-800 text-white rounded-lg p-6">
+                <h3 class="text-xl font-bold mb-4 text-white">Why Marketing Hub First?</h3>
+                <div class="grid md:grid-cols-3 gap-6 text-sm">
+                    <div>
+                        <p class="font-bold text-kaptio-yellow-400 mb-2">🎯 Biggest Need</p>
+                        <p class="text-kaptio-primary-200">
+                            Sales team needs accurate, beautiful content NOW. Current state: scattered docs, inconsistent branding, no tracking.
+                        </p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-kaptio-yellow-400 mb-2">🚀 Fast Win</p>
+                        <p class="text-kaptio-primary-200">
+                            Can publish user/config guides as "marketing content" initially while we build Hub 2 structure. 
+                            Proves workflow, empowers team immediately.
+                        </p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-kaptio-yellow-400 mb-2">📊 Clear Metrics</p>
+                        <p class="text-kaptio-primary-200">
+                            Success is measurable: tracked links used, prospect engagement captured, sales team empowered.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Implementation Options -->
+        <div class="bg-gradient-to-br from-kaptio-primary-50 to-white rounded-lg shadow-kaptio p-8 mb-16">
+            <h2 class="text-3xl font-bold text-kaptio-primary-800 mb-6">Long-Term Implementation Options</h2>
+            <div class="w-24 h-1 bg-kaptio-yellow-400 mb-8"></div>
+
+            <p class="text-kaptio-grey-300 mb-8">
+                After the POC gallery site, we need a sustainable long-term solution. Here's our analysis of git-native CMS options:
+            </p>
+
+            <!-- Comparison Table -->
+            <div class="overflow-x-auto mb-8">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b-2 border-kaptio-primary-400">
+                            <th class="text-left py-3 px-4 font-bold text-kaptio-primary-800">Feature</th>
+                            <th class="text-center py-3 px-4 font-bold text-kaptio-primary-800">CloudCannon</th>
+                            <th class="text-center py-3 px-4 font-bold text-kaptio-primary-800">Decap CMS</th>
+                            <th class="text-center py-3 px-4 font-bold text-kaptio-primary-800">Tina CMS</th>
+                            <th class="text-center py-3 px-4 font-bold text-kaptio-primary-800">Keystatic</th>
+                            <th class="text-center py-3 px-4 font-bold text-kaptio-primary-800">Custom Build</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Git-Native</td>
+                            <td class="text-center py-3 px-4">✅</td>
+                            <td class="text-center py-3 px-4">✅</td>
+                            <td class="text-center py-3 px-4">✅</td>
+                            <td class="text-center py-3 px-4">✅</td>
+                            <td class="text-center py-3 px-4">✅</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Built-in Approval Workflow</td>
+                            <td class="text-center py-3 px-4">✅ Publishing</td>
+                            <td class="text-center py-3 px-4">⚠️ Basic</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">✅ Custom Rules</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Approval Matrix (2+ approvers)</td>
+                            <td class="text-center py-3 px-4">⚠️ Team Plans</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">✅</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Different Rules per Content Type</td>
+                            <td class="text-center py-3 px-4">⚠️ Limited</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">✅</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Link Tracking & Analytics</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">❌</td>
+                            <td class="text-center py-3 px-4">✅ Integrated</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Visual Editor UX</td>
+                            <td class="text-center py-3 px-4">✅ Excellent</td>
+                            <td class="text-center py-3 px-4">⚠️ Basic</td>
+                            <td class="text-center py-3 px-4">✅ Excellent</td>
+                            <td class="text-center py-3 px-4">✅ Good</td>
+                            <td class="text-center py-3 px-4">✅ Good</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">SSG Support</td>
+                            <td class="text-center py-3 px-4">✅ Many</td>
+                            <td class="text-center py-3 px-4">✅ Many</td>
+                            <td class="text-center py-3 px-4">✅ Many</td>
+                            <td class="text-center py-3 px-4">⚠️ Limited</td>
+                            <td class="text-center py-3 px-4">✅ Any</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Time to Launch</td>
+                            <td class="text-center py-3 px-4">✅ Immediate</td>
+                            <td class="text-center py-3 px-4">✅ Immediate</td>
+                            <td class="text-center py-3 px-4">✅ Immediate</td>
+                            <td class="text-center py-3 px-4">✅ Immediate</td>
+                            <td class="text-center py-3 px-4">⚠️ 12 weeks</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Maturity</td>
+                            <td class="text-center py-3 px-4">✅ Very Stable</td>
+                            <td class="text-center py-3 px-4">✅ Stable</td>
+                            <td class="text-center py-3 px-4">✅ Mature</td>
+                            <td class="text-center py-3 px-4">⚠️ New</td>
+                            <td class="text-center py-3 px-4">⚠️ We Build</td>
+                        </tr>
+                        <tr class="border-b border-kaptio-grey-100">
+                            <td class="py-3 px-4 font-medium">Knowledge / Maintainability</td>
+                            <td class="text-center py-3 px-4">⚠️ Vendor Docs</td>
+                            <td class="text-center py-3 px-4">⚠️ Vendor Docs</td>
+                            <td class="text-center py-3 px-4">⚠️ Vendor Docs</td>
+                            <td class="text-center py-3 px-4">⚠️ Vendor Docs</td>
+                            <td class="text-center py-3 px-4">✅ We Own It</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Analysis Summary -->
+            <div class="bg-kaptio-primary-100 rounded-lg p-6 mb-8">
+                <h4 class="font-bold text-kaptio-primary-800 mb-3">Initial Assessment</h4>
+                <p class="text-sm text-kaptio-grey-300">
+                    <strong>Decap</strong> and <strong>Keystatic</strong> lack built-in approval workflows entirely. 
+                    <strong>Tina</strong> has excellent UX but no approval features. These three would all require building 
+                    custom approval systems on top, which defeats the purpose of using an existing CMS.
+                </p>
+                <p class="text-sm text-kaptio-grey-300 mt-3">
+                    This narrows our exploration to two viable approaches: <strong>CloudCannon</strong> (mature commercial platform) 
+                    or <strong>Custom Build</strong> (purpose-built solution). Halldor will explore both during the POC phase.
+                </p>
+            </div>
+        </div>
+
+        <!-- Two Finalists -->
+        <div class="mb-16">
+            <h2 class="text-3xl font-bold text-kaptio-primary-800 mb-6 text-center">Two Paths to Explore</h2>
+            <div class="w-24 h-1 bg-kaptio-yellow-400 mb-8 mx-auto"></div>
+            
+            <p class="text-center text-kaptio-grey-300 mb-12 max-w-3xl mx-auto">
+                What would each option look like in practice? Here's what Halldor will investigate:
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Option A: CloudCannon -->
+                <div class="bg-gradient-to-br from-blue-50 to-kaptio-primary-50 rounded-lg shadow-kaptio p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xl mr-4">
+                            A
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-kaptio-primary-800">CloudCannon Path</h3>
+                            <p class="text-sm text-kaptio-grey-300">What if we used a mature commercial platform?</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h4 class="font-bold text-kaptio-primary-800 mb-3 flex items-center">
+                            <span class="text-green-600 mr-2">✅</span>
+                            What CloudCannon Provides
+                        </h4>
+                        <ul class="space-y-2 text-sm text-kaptio-grey-300">
+                            <li>• Excellent visual editor (best-in-class)</li>
+                            <li>• Publishing workflows built-in</li>
+                            <li>• Team roles & permissions</li>
+                            <li>• Hosting + CDN included</li>
+                            <li>• Very stable (since 2013)</li>
+                            <li>• Supports multiple SSGs</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-6">
+                        <h4 class="font-bold text-kaptio-primary-800 mb-3 flex items-center">
+                            <span class="text-orange-500 mr-2">⚙️</span>
+                            How Could We Handle Missing Features?
+                        </h4>
+                        <ul class="space-y-2 text-sm text-kaptio-grey-300">
+                            <li class="bg-white rounded p-3">
+                                <strong class="text-kaptio-primary-800">Approval Matrix:</strong>
+                                <p class="text-xs mt-1">Use CloudCannon's Team plan workflows + custom database layer tracking additional approvals. Webhook on publish event checks our approval rules before allowing merge.</p>
+                            </li>
+                            <li class="bg-white rounded p-3">
+                                <strong class="text-kaptio-primary-800">Link Tracking:</strong>
+                                <p class="text-xs mt-1">Build separate link service (Supabase). Generate short URLs that redirect to CloudCannon-hosted content. Track visits in our database, separate from CloudCannon.</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-100 rounded-lg p-4">
+                        <h4 class="font-bold text-kaptio-primary-800 mb-2 text-sm">Cost: ~$100/month</h4>
+                        <p class="text-xs text-kaptio-grey-300">Team plan covers 3 sites, 4th site on basic plan</p>
+                    </div>
+                </div>
+
+                <!-- Option B: Custom Build -->
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg shadow-kaptio p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-kaptio-yellow-400 rounded-lg flex items-center justify-center text-kaptio-black font-bold text-xl mr-4">
+                            B
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-kaptio-primary-800">Custom Build Path</h3>
+                            <p class="text-sm text-kaptio-grey-300">What if we built exactly what we need?</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h4 class="font-bold text-kaptio-primary-800 mb-3 flex items-center">
+                            <span class="text-green-600 mr-2">✅</span>
+                            What We'd Build
+                        </h4>
+                        <ul class="space-y-2 text-sm text-kaptio-grey-300">
+                            <li>• MDX editor with live preview</li>
+                            <li>• Custom approval workflows</li>
+                            <li>• Integrated link tracking</li>
+                            <li>• Native Kai integration</li>
+                            <li>• Git-native (GitHub API)</li>
+                            <li>• Simple, focused features</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-6">
+                        <h4 class="font-bold text-kaptio-primary-800 mb-3 flex items-center">
+                            <span class="text-orange-500 mr-2">⚙️</span>
+                            How Would It Work?
+                        </h4>
+                        <ul class="space-y-2 text-sm text-kaptio-grey-300">
+                            <li class="bg-white rounded p-3">
+                                <strong class="text-kaptio-primary-800">Content Editor:</strong>
+                                <p class="text-xs mt-1">React-based MDX editor with split-screen preview. Saves to Git via GitHub API. Metadata form for frontmatter.</p>
+                            </li>
+                            <li class="bg-white rounded p-3">
+                                <strong class="text-kaptio-primary-800">Approval Engine:</strong>
+                                <p class="text-xs mt-1">Supabase database tracks submissions, approvals, rules. Admin portal shows review queue. Auto-merges PR when enough approvals.</p>
+                            </li>
+                            <li class="bg-white rounded p-3">
+                                <strong class="text-kaptio-primary-800">All Services Integrated:</strong>
+                                <p class="text-xs mt-1">Link generator and analytics dashboard built into the same admin portal. Single system, single source of truth. Kai assists with content generation (internal tool, not embedded).</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-orange-100 rounded-lg p-4">
+                        <h4 class="font-bold text-kaptio-primary-800 mb-2 text-sm">Cost: ~$20/month</h4>
+                        <p class="text-xs text-kaptio-grey-300">Infrastructure only (Netlify + Supabase + Cloudinary free tiers)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Workflow (If CloudCannon) -->
+        <div class="bg-kaptio-white rounded-lg shadow-kaptio p-8 mb-16">
+            <h2 class="text-3xl font-bold text-kaptio-primary-800 mb-6">Content Workflow: How Could It Work?</h2>
+            <div class="w-24 h-1 bg-kaptio-yellow-400 mb-8"></div>
+
+            <p class="text-kaptio-grey-300 mb-8">
+                If we choose CloudCannon, here's how the end-to-end content creation process <strong>could</strong> work:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+                <div class="bg-kaptio-background rounded-lg p-6">
+                    <div class="w-12 h-12 bg-kaptio-primary-400 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4">1</div>
+                    <h3 class="font-bold text-kaptio-primary-800 mb-2">Request</h3>
+                    <p class="text-xs text-kaptio-grey-300">
+                        Sales team requests content via backlog: "Need one-pager for Kaptio Connect API features"
+                    </p>
+                </div>
+
+                <div class="bg-kaptio-background rounded-lg p-6">
+                    <div class="w-12 h-12 bg-kaptio-primary-400 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4">2</div>
+                    <h3 class="font-bold text-kaptio-primary-800 mb-2">Generate</h3>
+                    <p class="text-xs text-kaptio-grey-300">
+                        Kai (via Cursor) creates markdown file in CloudCannon format. Commits to Git branch. First draft ready.
+                    </p>
+                </div>
+
+                <div class="bg-kaptio-background rounded-lg p-6">
+                    <div class="w-12 h-12 bg-kaptio-primary-400 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4">3</div>
+                    <h3 class="font-bold text-kaptio-primary-800 mb-2">Review + Edit</h3>
+                    <p class="text-xs text-kaptio-grey-300">
+                        Content team opens in CloudCannon's visual editor. Reviews accuracy, polishes messaging, adds media. Can use Notion AI.
+                    </p>
+                </div>
+
+                <div class="bg-kaptio-background rounded-lg p-6">
+                    <div class="w-12 h-12 bg-kaptio-primary-400 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4">4</div>
+                    <h3 class="font-bold text-kaptio-primary-800 mb-2">Approve</h3>
+                    <p class="text-xs text-kaptio-grey-300">
+                        Submitted via CloudCannon workflow. Product + Marketing teams approve. Merges to main.
+                    </p>
+                </div>
+
+                <div class="bg-kaptio-background rounded-lg p-6">
+                    <div class="w-12 h-12 bg-kaptio-primary-400 rounded-full flex items-center justify-center text-white font-bold text-lg mb-4">5</div>
+                    <h3 class="font-bold text-kaptio-primary-800 mb-2">Publish + Track</h3>
+                    <p class="text-xs text-kaptio-grey-300">
+                        Content live on hub. Admin generates tracked link. Sales shares with prospect. Analytics captured.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6">
+                <h4 class="font-bold text-kaptio-primary-800 mb-3">Key Point: Kai's Role</h4>
+                <p class="text-sm text-kaptio-grey-300">
+                    Kai is a <strong>content generation tool</strong>, not an embedded assistant. Team members use Kai via Cursor 
+                    to create first drafts. Kai never interacts with customers or prospects. This sidesteps all security/privacy concerns 
+                    while still leveraging AI for content creation speed.
+                </p>
+            </div>
+
+            <div class="bg-kaptio-primary-50 rounded-lg p-6 mt-6">
+                <h4 class="font-bold text-kaptio-primary-800 mb-3">Questions for Halldor's Research:</h4>
+                <ul class="text-sm text-kaptio-grey-300 space-y-2">
+                    <li>• How easily can we integrate approval tracking with CloudCannon's webhooks?</li>
+                    <li>• What's the actual UX like for content editors in CloudCannon?</li>
+                    <li>• Can we prototype the link tracking service quickly?</li>
+                    <li>• What are the real gotchas with CloudCannon that we might not see upfront?</li>
+                    <li>• How much effort would custom build actually require?</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- The Critical Factor -->
+        <div class="bg-gradient-to-br from-kaptio-primary-800 to-kaptio-primary-600 rounded-lg shadow-kaptio p-8 mb-16 text-white text-center">
+            <h2 class="text-3xl font-bold mb-6 text-white">The Ultimate Decision Factor</h2>
+            <div class="w-32 h-1 bg-kaptio-yellow-400 mx-auto mb-8"></div>
+            
+            <div class="max-w-3xl mx-auto">
+                <p class="text-2xl text-white font-medium mb-6">
+                    After POCs Are Complete
+                </p>
+                
+                <p class="text-xl text-kaptio-primary-100 font-light mb-8">
+                    Once Ragnar's gallery is live and Halldor has explored both CloudCannon and custom integration plans, 
+                    we'll need to make THE decision. This decision isn't about cost or speed—it's about 
+                    <strong class="text-white">sustainable, maintainable knowledge</strong>.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6 text-left mb-8">
+                    <div class="bg-white/10 backdrop-blur rounded-lg p-6">
+                        <h3 class="font-bold mb-3 text-lg text-white">With CloudCannon</h3>
+                        <ul class="space-y-2 text-sm text-kaptio-primary-200">
+                            <li>• Team learns CloudCannon's patterns</li>
+                            <li>• Relies on their documentation</li>
+                            <li>• Limited by their feature set</li>
+                            <li>• Issues require vendor support</li>
+                            <li>• Knowledge is "how to use CloudCannon"</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur rounded-lg p-6">
+                        <h3 class="font-bold mb-3 text-lg text-white">With Custom Build</h3>
+                        <ul class="space-y-2 text-sm text-kaptio-primary-200">
+                            <li>• Team understands the architecture</li>
+                            <li>• Can fix any issue ourselves</li>
+                            <li>• Add features when needed</li>
+                            <li>• Clear, simple patterns</li>
+                            <li>• Knowledge is "how our system works"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-kaptio-yellow-400 bg-opacity-20 rounded-lg p-6">
+                    <p class="text-lg text-white mb-4">
+                        <strong>The Question:</strong>
+                    </p>
+                    <p class="text-kaptio-primary-100">
+                        Do we want to build team expertise in <em>using CloudCannon's platform</em>, 
+                        or in <em>owning and evolving our own system</em>?
+                    </p>
+                </div>
+
+                <p class="text-sm text-kaptio-primary-200 mt-8">
+                    Both paths can work. Both have trade-offs. The POCs will give us the data to make this choice intelligently.
+                </p>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-kaptio-primary-800 rounded-lg shadow-kaptio p-8 text-white text-center">
+            <h2 class="text-3xl font-bold mb-4 text-white">Next Steps: Two-Track Approach</h2>
+            <div class="w-24 h-1 bg-kaptio-yellow-400 mx-auto mb-8"></div>
+            
+            <div class="max-w-4xl mx-auto">
+                <p class="text-xl text-kaptio-primary-200 font-light mb-12">
+                    We'll run two parallel tracks to make an informed decision:
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-12 text-left">
+                    <div class="bg-white/10 backdrop-blur rounded-lg p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-kaptio-yellow-400 rounded-lg flex items-center justify-center text-kaptio-black font-bold text-lg mr-3">R</div>
+                            <h3 class="font-bold text-lg text-white">Ragnar: Gallery POC</h3>
+                        </div>
+                        <p class="text-sm text-kaptio-primary-200 mb-3">
+                            Build simple static gallery site THIS WEEK. Get sales team using it immediately. 
+                            Prove that magazine-style content works for the workflow.
+                        </p>
+                        <p class="text-xs text-kaptio-primary-100">
+                            <strong>Timeline:</strong> Live by Friday
+                        </p>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur rounded-lg p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-kaptio-orange rounded-lg flex items-center justify-center text-white font-bold text-lg mr-3">H</div>
+                            <h3 class="font-bold text-lg text-white">Halldor: Options Research</h3>
+                        </div>
+                        <p class="text-sm text-kaptio-primary-200 mb-3">
+                            Explore CloudCannon and custom build approaches. Create detailed integration plans for both. 
+                            Document what each path would really involve.
+                        </p>
+                        <p class="text-xs text-kaptio-primary-100">
+                            <strong>Timeline:</strong> 2-4 weeks
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-kaptio-yellow-400 bg-opacity-20 rounded-lg p-6 mb-8">
+                    <p class="text-lg text-white font-medium mb-3">
+                        Questions to Answer Through POCs:
+                    </p>
+                    <ul class="text-sm text-kaptio-primary-200 space-y-2">
+                        <li>• Does the sales team actually use the gallery content?</li>
+                        <li>• How much content do we need to create per month?</li>
+                        <li>• How complex are the approval workflows in practice?</li>
+                        <li>• What analytics do we actually need from link tracking?</li>
+                        <li>• How important is the visual editor UX vs maintainability?</li>
+                    </ul>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="#" class="inline-block bg-kaptio-yellow-400 hover:bg-kaptio-yellow-300 text-kaptio-black px-8 py-4 rounded-lg font-bold shadow-button transition-all duration-200 hover:shadow-md active:scale-95">
+                        Start Gallery POC
+                    </a>
+                    <a href="#" class="inline-block bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg font-bold backdrop-blur transition-all duration-200">
+                        Schedule Halldor Review
+                    </a>
+                </div>
+
+                <p class="text-xs text-kaptio-primary-200 mt-8">
+                    Decision on CloudCannon vs Custom will be made after both POCs complete and we have real data.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-kaptio-primary-800 text-kaptio-primary-200 py-12 mt-16">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 91 29" class="mx-auto mb-6" style="height: 32px; width: auto;">
+                <path d="M64.8,22.2c-1.2.4-2.6.6-3.9.6-3.4,0-5.7-2.5-5.7-6.2v-4.1h-2.8v-4h2.8v-3.5l4.8-1.2v4.7h4.9v4h-4.9v4c0,1.4.8,2.1,2.2,2.1.9,0,1.8-.2,2.6-.4v4.1Z" fill="white"/>
+                <path d="M72.5,22.4h-4.8v-13.9h4.8v13.9Z" fill="white"/>
+                <path d="M82.8,8.2c-4.5,0-7.7,3.1-7.7,7.2s3.2,7.4,7.7,7.4,7.7-3.1,7.7-7.4-3.2-7.2-7.7-7.2ZM82.8,18.8c-1.9,0-3.4-1.5-3.4-3.3s1.5-3.3,3.4-3.3,3.4,1.5,3.4,3.3-1.5,3.3-3.4,3.3Z" fill="white"/>
+                <path d="M27.5,22.4h4.8v-13.9h-4.8v.8c-1.2-.7-2.5-1.1-3.9-1.1-3.8,0-7.1,3.1-7.1,7.2s3.2,7.2,7.1,7.2c1.4,0,2.7-.3,3.9-1.1v.8ZM28.3,15.5c0,1.8-1.5,3.3-3.4,3.3s-3.4-1.5-3.4-3.3,1.5-3.3,3.4-3.3,3.4,1.5,3.4,3.3Z" fill="white"/>
+                <path d="M44.2,22.6c3.8,0,7.1-3.1,7.1-7.2s-3.2-7.2-7.1-7.2c-1.4,0-2.7.3-3.9,1.1v-.7h-4.8v20.3h4.8v-7.2c1.2.7,2.5,1.1,3.9,1.1ZM46.2,15.5c0,1.8-1.5,3.3-3.4,3.3s-3.4-1.5-3.4-3.3,1.5-3.3,3.4-3.3,3.4,1.5,3.4,3.3Z" fill="white"/>
+                <path d="M10.1,22.3l-4.9-6.1v6.1H.4V2h4.7v12.2l4.8-5.8h6.1l-5.7,6.7,5.9,7.3h-6.2Z" fill="white"/>
+                <ellipse cx="70.3" cy="3.6" rx="3.4" ry="3.4" fill="#DE37A4"/>
+            </svg>
+            <p class="text-sm">© 2025 Kaptio. Content Hub Ecosystem Architecture.</p>
+            <p class="text-xs text-kaptio-primary-300 mt-2">Built with the Kaptio Design System</p>
+        </div>
+    </footer>
+
+</body>
+</html>
+
